@@ -12,6 +12,8 @@ type Whois interface {
 	Stop()
 	// send !t<timeout>
 	SetIdleTimout(t time.Duration)
+	// send !v
+	GetVersion() <-chan Result[string]
 	// send query !i<set-name> or !i<set-name>,1 depending on bool, safe for concurrent use
 	GetSetMembers(set string, recursive bool) SetMembers
 	// send query !i<set-name>,1, safe for concurrent use
@@ -106,4 +108,14 @@ func (a async) worker(w whois.Whois) {
 			break
 		}
 	}
+}
+
+func (a async) GetVersion() <-chan Result[string] {
+	rch := make(chan Result[string], 1)
+	a.queries <- func(w whois.Whois) error {
+		s, err := w.GetVersion()
+		rch <- result[string]{s, err}
+		return err
+	}
+	return rch
 }

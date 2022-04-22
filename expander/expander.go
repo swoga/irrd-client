@@ -20,7 +20,7 @@ func ExpandSetRoutes(w async.Whois, p whois.IPProto, set string) (*netaddr.IPSet
 	var originResults []<-chan async.Result[[]netaddr.IPPrefix]
 
 	for _, member := range r.Data() {
-		if member[:2] == "AS" {
+		if len(member) > 2 && member[:2] == "AS" {
 			asn, err := strconv.Atoi(member[2:])
 			if err != nil {
 				return nil, err

@@ -1,6 +1,7 @@
 package async
 
 import (
+	"strings"
 	"time"
 
 	"github.com/swoga/irrd-client/whois"
@@ -29,11 +30,13 @@ type AsSetMembers = <-chan Result[[]uint32]
 type Routes = <-chan Result[[]netaddr.IPPrefix]
 
 type async struct {
-	cache       whois.WhoisCache
-	address     string
-	timeout     time.Duration
-	idleTimeout *time.Duration
-	queries     chan func(whois.Whois) error
+	cache          whois.WhoisCache
+	address        string
+	timeout        time.Duration
+	idleTimeout    *time.Duration
+	queries        chan func(whois.Whois) error
+	checkedVersion bool
+	supportsBySet  bool
 }
 
 func New(address string, timeout time.Duration) Whois {
@@ -51,6 +54,11 @@ func (a *async) Start(n int) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	err := a.checkVersion()
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -118,4 +126,28 @@ func (a async) GetVersion() <-chan Result[string] {
 		return err
 	}
 	return rch
+}
+
+func (a *async) checkVersion() error {
+	if a.checkedVersion {
+		return nil
+	}
+	a.checkedVersion = true
+
+	vch := a.GetVersion()
+	r := <-vch
+	if r.Error() != nil {
+		return r.Error()
+	}
+
+	v := r.Data()
+	header := "version "
+	i := strings.Index(v, header)
+	if i != -1 {
+		start := i + len(header)
+		version := v[start : start+1]
+		a.supportsBySet = version == "4"
+	}
+
+	return nil
 }

@@ -8,6 +8,7 @@ import (
 func (a async) GetRoutesBySet(p whois.IPProto, set string) Routes {
 	rch := make(chan Result[[]netaddr.IPPrefix], 1)
 	a.queries <- func(w whois.Whois) error {
+		defer close(rch)
 		p, err := w.GetRoutesBySet(p, set)
 		rch <- result[[]netaddr.IPPrefix]{p, err}
 		return err

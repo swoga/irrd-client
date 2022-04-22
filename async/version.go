@@ -9,6 +9,7 @@ import (
 func (a async) GetVersion() <-chan Result[string] {
 	rch := make(chan Result[string], 1)
 	a.queries <- func(w whois.Whois) error {
+		defer close(rch)
 		s, err := w.GetVersion()
 		rch <- result[string]{s, err}
 		return err

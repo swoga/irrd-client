@@ -10,6 +10,7 @@ import (
 type Whois interface {
 	Start(n int) error
 	Stop()
+	// send !t<timeout>
 	SetIdleTimout(t time.Duration)
 	// send query !i<set-name> or !i<set-name>,1 depending on bool, safe for concurrent use
 	GetSetMembers(set string, recursive bool) SetMembers

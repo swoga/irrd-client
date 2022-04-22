@@ -24,6 +24,8 @@ type Whois interface {
 	EnableMultiCommand() error
 	// send !t<timeout>
 	SetIdleTimout(d time.Duration) error
+	// send !v
+	GetVersion() (string, error)
 
 	// send query !i<set-name> or !i<set-name>,1 depending on bool
 	GetSetMembers(set string, recursive bool) ([]string, error)
@@ -69,6 +71,10 @@ func (w whois) EnableMultiCommand() error {
 func (w whois) SetIdleTimout(d time.Duration) error {
 	_, err := w.Client.Query("!t" + fmt.Sprintf("%d", int(d.Seconds())))
 	return err
+}
+
+func (w whois) GetVersion() (string, error) {
+	return w.Client.Query("!v")
 }
 
 func (w whois) Close() error {

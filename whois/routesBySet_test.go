@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/swoga/irrd-client/asynctest"
 	"github.com/swoga/irrd-client/mock"
 	"inet.af/netaddr"
 )
@@ -18,27 +17,26 @@ func TestGetRoutesBySet(t *testing.T) {
 	want := []netaddr.IPPrefix{netaddr.MustParseIPPrefix("10.0.0.0/8"), netaddr.MustParseIPPrefix("192.168.0.0/16")}
 	raw := "10.0.0.0/8 192.168.0.0/16"
 
-	asynctest.New(t,
-		func(t asynctest.T) {
-			s.Read(t, "!a4"+set+"\n")
-			s.Write(t, "A"+fmt.Sprintf("%d", len(raw)+1)+"\n"+raw+"\nC\n")
-		},
-		func(t asynctest.T) {
-			has, err := c.GetRoutesBySet(IP4, set)
-			if err != nil {
-				t.Fatal(err)
-			}
+	go func() {
+		defer s.Close()
+		s.Read(t, "!a4"+set+"\n")
+		s.Write(t, "A"+fmt.Sprintf("%d", len(raw)+1)+"\n"+raw+"\nC\n")
+	}()
 
-			if len(has) != len(want) {
-				t.Fatalf("client got n results: %v, want: %v", len(has), len(want))
-			}
+	has, err := c.GetRoutesBySet(IP4, set)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-			for i := range has {
-				if has[i] != want[i] {
-					t.Fatalf("client got: %v, want: %v", has[i], want[i])
-				}
-			}
-		})
+	if len(has) != len(want) {
+		t.Fatalf("client got n results: %v, want: %v", len(has), len(want))
+	}
+
+	for i := range has {
+		if has[i] != want[i] {
+			t.Fatalf("client got: %v, want: %v", has[i], want[i])
+		}
+	}
 }
 
 func TestGetRoutesBySetEmpty(t *testing.T) {
@@ -47,21 +45,20 @@ func TestGetRoutesBySetEmpty(t *testing.T) {
 
 	set := "AS-TEST"
 
-	asynctest.New(t,
-		func(t asynctest.T) {
-			s.Read(t, "!a4"+set+"\n")
-			s.Write(t, "D\nC\n")
-		},
-		func(t asynctest.T) {
-			has, err := c.GetRoutesBySet(IP4, set)
-			if err != nil {
-				t.Fatal(err)
-			}
+	go func() {
+		defer s.Close()
+		s.Read(t, "!a4"+set+"\n")
+		s.Write(t, "D\nC\n")
+	}()
 
-			if len(has) != 0 {
-				t.Fatalf("client got n results: %v, want: %v", len(has), 0)
-			}
-		})
+	has, err := c.GetRoutesBySet(IP4, set)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(has) != 0 {
+		t.Fatalf("client got n results: %v, want: %v", len(has), 0)
+	}
 }
 
 func TestLiveGetRoutes4BySet(t *testing.T) {

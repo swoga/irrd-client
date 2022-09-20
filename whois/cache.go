@@ -3,8 +3,9 @@ package whois
 import (
 	"fmt"
 
+	"net/netip"
+
 	"github.com/swoga/irrd-client/cache"
-	"inet.af/netaddr"
 )
 
 type WhoisCache interface {
@@ -15,14 +16,14 @@ func NewCache() WhoisCache {
 	return whoisCache{
 		setMembers:   cache.New[string, []string](),
 		asSetMembers: cache.New[string, []uint32](),
-		routes:       cache.New[string, []netaddr.IPPrefix](),
+		routes:       cache.New[string, []netip.Prefix](),
 	}
 }
 
 type whoisCache struct {
 	setMembers   cache.Cache[string, []string]
 	asSetMembers cache.Cache[string, []uint32]
-	routes       cache.Cache[string, []netaddr.IPPrefix]
+	routes       cache.Cache[string, []netip.Prefix]
 }
 
 func (wc whoisCache) UseCache(w Whois) Whois {
@@ -37,7 +38,7 @@ type whoisCached struct {
 	cache whoisCache
 }
 
-func (wc whoisCached) GetRoutesByOrigin(p IPProto, asn uint32) ([]netaddr.IPPrefix, error) {
+func (wc whoisCached) GetRoutesByOrigin(p IPProto, asn uint32) ([]netip.Prefix, error) {
 	key := fmt.Sprint(p) + fmt.Sprint(asn)
 
 	value, found := wc.cache.routes.Get(key)
@@ -55,7 +56,7 @@ func (wc whoisCached) GetRoutesByOrigin(p IPProto, asn uint32) ([]netaddr.IPPref
 	return value, nil
 }
 
-func (wc whoisCached) GetRoutesBySet(p IPProto, set string) ([]netaddr.IPPrefix, error) {
+func (wc whoisCached) GetRoutesBySet(p IPProto, set string) ([]netip.Prefix, error) {
 	key := fmt.Sprint(p) + set
 
 	value, found := wc.cache.routes.Get(key)

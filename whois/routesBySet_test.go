@@ -2,11 +2,11 @@ package whois
 
 import (
 	"fmt"
+	"net/netip"
 	"testing"
 	"time"
 
 	"github.com/swoga/irrd-client/mock"
-	"inet.af/netaddr"
 )
 
 func TestGetRoutesBySet(t *testing.T) {
@@ -14,7 +14,7 @@ func TestGetRoutesBySet(t *testing.T) {
 	c := NewFromBufferedConn(mc)
 
 	set := "AS-TEST"
-	want := []netaddr.IPPrefix{netaddr.MustParseIPPrefix("10.0.0.0/8"), netaddr.MustParseIPPrefix("192.168.0.0/16")}
+	want := []netip.Prefix{netip.MustParsePrefix("10.0.0.0/8"), netip.MustParsePrefix("192.168.0.0/16")}
 	raw := "10.0.0.0/8 192.168.0.0/16"
 
 	go func() {

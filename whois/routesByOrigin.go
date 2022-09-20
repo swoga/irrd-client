@@ -2,12 +2,11 @@ package whois
 
 import (
 	"fmt"
+	"net/netip"
 	"strings"
-
-	"inet.af/netaddr"
 )
 
-func (w whois) GetRoutesByOrigin(p IPProto, asn uint32) ([]netaddr.IPPrefix, error) {
+func (w whois) GetRoutesByOrigin(p IPProto, asn uint32) ([]netip.Prefix, error) {
 	query := ""
 	switch p {
 	case IP4:
@@ -24,7 +23,7 @@ func (w whois) GetRoutesByOrigin(p IPProto, asn uint32) ([]netaddr.IPPrefix, err
 		return nil, err
 	}
 	if str == "" {
-		return make([]netaddr.IPPrefix, 0), nil
+		return make([]netip.Prefix, 0), nil
 	}
 	strNets := strings.Split(str, " ")
 	return parseNetworks(strNets)

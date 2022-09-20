@@ -1,14 +1,14 @@
 package async
 
 import (
+	"net/netip"
 	"strconv"
 
 	"github.com/swoga/irrd-client/whois"
-	"inet.af/netaddr"
 )
 
 func (a async) expandSetRoutes(p whois.IPProto, set string) Routes {
-	rch := make(chan Result[[]netaddr.IPPrefix])
+	rch := make(chan Result[[]netip.Prefix])
 
 	go func() {
 		defer close(rch)
@@ -17,30 +17,30 @@ func (a async) expandSetRoutes(p whois.IPProto, set string) Routes {
 		r := <-ci
 
 		if r.Error() != nil {
-			rch <- result[[]netaddr.IPPrefix]{nil, r.Error()}
+			rch <- result[[]netip.Prefix]{nil, r.Error()}
 			return
 		}
 
-		var nets []netaddr.IPPrefix
-		var originResults []<-chan Result[[]netaddr.IPPrefix]
+		var nets []netip.Prefix
+		var originResults []<-chan Result[[]netip.Prefix]
 
 		for _, member := range r.Data() {
 			if len(member) > 2 && member[:2] == "AS" {
 				asn, err := strconv.Atoi(member[2:])
 				if err != nil {
-					rch <- result[[]netaddr.IPPrefix]{nil, err}
+					rch <- result[[]netip.Prefix]{nil, err}
 					return
 				}
 				o := a.GetRoutesByOrigin(p, uint32(asn))
 				originResults = append(originResults, o)
 			} else {
-				net, err := netaddr.ParseIPPrefix(member)
+				net, err := netip.ParsePrefix(member)
 				if err != nil {
-					rch <- result[[]netaddr.IPPrefix]{nil, err}
+					rch <- result[[]netip.Prefix]{nil, err}
 					return
 				}
 				is6 := p == whois.IP6
-				if net.IP().Is6() != is6 {
+				if net.Addr().Is6() != is6 {
 					continue
 				}
 
@@ -51,13 +51,13 @@ func (a async) expandSetRoutes(p whois.IPProto, set string) Routes {
 		for _, r := range originResults {
 			or := <-r
 			if or.Error() != nil {
-				rch <- result[[]netaddr.IPPrefix]{nil, or.Error()}
+				rch <- result[[]netip.Prefix]{nil, or.Error()}
 				return
 			}
 			nets = append(nets, or.Data()...)
 		}
 
-		rch <- result[[]netaddr.IPPrefix]{nets, nil}
+		rch <- result[[]netip.Prefix]{nets, nil}
 	}()
 
 	return rch

@@ -2,14 +2,13 @@ package whois
 
 import (
 	"fmt"
-
-	"inet.af/netaddr"
+	"net/netip"
 )
 
-func parseNetworks(strNets []string) ([]netaddr.IPPrefix, error) {
-	nets := make([]netaddr.IPPrefix, 0, len(strNets))
+func parseNetworks(strNets []string) ([]netip.Prefix, error) {
+	nets := make([]netip.Prefix, 0, len(strNets))
 	for _, strNet := range strNets {
-		net, err := netaddr.ParseIPPrefix(strNet)
+		net, err := netip.ParsePrefix(strNet)
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse %v into network: %v", strNet, err)
 		}

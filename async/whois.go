@@ -1,10 +1,10 @@
 package async
 
 import (
+	"net/netip"
 	"time"
 
 	"github.com/swoga/irrd-client/whois"
-	"inet.af/netaddr"
 )
 
 type Whois interface {
@@ -28,7 +28,7 @@ type Whois interface {
 
 type SetMembers = <-chan Result[[]string]
 type AsSetMembers = <-chan Result[[]uint32]
-type Routes = <-chan Result[[]netaddr.IPPrefix]
+type Routes = <-chan Result[[]netip.Prefix]
 
 type async struct {
 	cache          whois.WhoisCache

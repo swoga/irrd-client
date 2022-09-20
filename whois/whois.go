@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/netip"
 	"time"
 
 	"github.com/swoga/irrd-client/conn"
 	"github.com/swoga/irrd-client/proto"
-	"inet.af/netaddr"
 )
 
 type IPProto byte
@@ -32,9 +32,9 @@ type Whois interface {
 	// send query !i<set-name>,1
 	GetAsSetMembersRecrusive(set string) ([]uint32, error)
 	// send query !gAS<asn> or !6AS<asn> depending on p
-	GetRoutesByOrigin(p IPProto, asn uint32) ([]netaddr.IPPrefix, error)
+	GetRoutesByOrigin(p IPProto, asn uint32) ([]netip.Prefix, error)
 	// send query !a<as-set-name> !a4<as-set-name> or !a6<as-set-name> depending on p
-	GetRoutesBySet(p IPProto, set string) ([]netaddr.IPPrefix, error)
+	GetRoutesBySet(p IPProto, set string) ([]netip.Prefix, error)
 
 	io.Closer
 }
